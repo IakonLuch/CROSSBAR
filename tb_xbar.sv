@@ -53,7 +53,7 @@ end
 always #5 clk = ~clk;
 
 
-xbar dut (
+xbar_v2 dut (
 
     .master_0_req   ( master_0_req   ),
     .master_1_req   ( master_1_req   ),
@@ -151,16 +151,16 @@ task test1_read_m0_slave0();
     // Send request
     master_0_req = 1'b1;
     master_0_cmd = 1'b0;               // read
-    master_0_addr = 32'h0000_1234;    // MSB=0 → slave0
+    master_0_addr = 32'h0000_1234;    // MSB=0 -> slave0
     
     @(posedge clk);
     @(negedge clk);
     
     // Check
     if (master_0_ack && (master_0_rdata == 32'hDEAD_BEEF))
-        $display("✅ PASS: Master0 read data = %h", master_0_rdata);
+        $display("PASS: Master0 read data = %h", master_0_rdata);
     else
-        $display("❌ FAIL: Master0 read - ack=%b data=%h", master_0_ack, master_0_rdata);
+        $display("FAIL: Master0 read - ack=%b data=%h", master_0_ack, master_0_rdata);
     
     master_0_req = 1'b0;
     @(posedge clk);
@@ -174,7 +174,7 @@ task test2_write_m0_slave0();
     
     master_0_req = 1'b1;
     master_0_cmd = 1'b1;               // write
-    master_0_addr = 32'h0000_5678;    // MSB=0 → slave0
+    master_0_addr = 32'h0000_5678;    // MSB=0 -> slave0
     master_0_wdata = 32'hA5A5_A5A5;
     
     @(posedge clk);
@@ -182,9 +182,9 @@ task test2_write_m0_slave0();
     
     // Check
     if (master_0_ack && (slave_0_wdata == master_0_wdata))
-        $display("✅ PASS: Master0 write - ACK received, data=%h", master_0_wdata);
+        $display("PASS: Master0 write - ACK received, data=%h", master_0_wdata);
     else
-        $display("❌ FAIL: Master0 write - ack=%b", master_0_ack);
+        $display("FAIL: Master0 write - ack=%b", master_0_ack);
     
     master_0_req = 1'b0;
     @(posedge clk);
@@ -198,16 +198,16 @@ task test3_read_m1_slave1();
     
     master_1_req = 1'b1;
     master_1_cmd = 1'b0;               // read
-    master_1_addr = 32'h8000_1234;    // MSB=1 → slave1
+    master_1_addr = 32'h8000_1234;    // MSB=1 -> slave1
     
     @(posedge clk);
     @(negedge clk);
     
     // Check
     if (master_1_ack && (master_1_rdata == 32'hCAFE_BABE))
-        $display("✅ PASS: Master1 read data = %h", master_1_rdata);
+        $display("PASS: Master1 read data = %h", master_1_rdata);
     else
-        $display("❌ FAIL: Master1 read - ack=%b data=%h", master_1_ack, master_1_rdata);
+        $display("FAIL: Master1 read - ack=%b data=%h", master_1_ack, master_1_rdata);
     
     master_1_req = 1'b0;
     @(posedge clk);
@@ -221,7 +221,7 @@ task test4_write_m1_slave1();
     
     master_1_req = 1'b1;
     master_1_cmd = 1'b1;               // write
-    master_1_addr = 32'h8000_5678;    // MSB=1 → slave1
+    master_1_addr = 32'h8000_5678;    // MSB=1 -> slave1
     master_1_wdata = 32'h5A5A_5A5A;
     
     @(posedge clk);
@@ -229,9 +229,9 @@ task test4_write_m1_slave1();
     
     // Check
     if (master_1_ack && (slave_1_wdata == master_1_wdata))
-        $display("✅ PASS: Master1 write - ACK received, data=%h", master_1_wdata);
+        $display("PASS: Master1 write - ACK received, data=%h", master_1_wdata);
     else
-        $display("❌ FAIL: Master1 write - ack=%b", master_1_ack);
+        $display("FAIL: Master1 write - ack=%b", master_1_ack);
     
     master_1_req = 1'b0;
     @(posedge clk);
@@ -255,9 +255,9 @@ task test5_parallel_reads_diff_slaves();
     @(negedge clk);
     
     if (master_0_ack && master_1_ack)
-        $display("✅ PASS: Both masters got ACK, m0_data=%h m1_data=%h", master_0_rdata, master_1_rdata);
+        $display("PASS: Both masters got ACK, m0_data=%h m1_data=%h", master_0_rdata, master_1_rdata);
     else
-        $display("❌ FAIL: m0_ack=%b m1_ack=%b", master_0_ack, master_1_ack);
+        $display("FAIL: m0_ack=%b m1_ack=%b", master_0_ack, master_1_ack);
     
     master_0_req = 1'b0;
     master_1_req = 1'b0;
@@ -265,10 +265,10 @@ task test5_parallel_reads_diff_slaves();
 endtask
 
 //===========================================================
-// TEST 6: Conflict on Slave0 – Round‑Robin (reads)
+// TEST 6: Conflict on Slave0 - Round-Robin (reads)
 //===========================================================
 task test6_conflict_round_robin_reads();
-    $display("\n=== TEST 6: Conflict on Slave0 (Round‑Robin reads) ===");
+    $display("\n=== TEST 6: Conflict on Slave0 (Round-Robin reads) ===");
     
     // Both request slave0
     master_0_req = 1'b1;
@@ -284,27 +284,27 @@ task test6_conflict_round_robin_reads();
     
     // After first arbitration, one gets grant, the other not
     if (master_0_ack && !master_1_ack) begin
-        $display("✅ First winner: Master0");
+        $display("First winner: Master0");
         master_0_req = 1'b0;                 // Master0 finishes
         @(posedge clk);
         @(negedge clk);
         if (!master_0_ack && master_1_ack)
-            $display("✅ Second winner: Master1 (round‑robin works)");
+            $display("Second winner: Master1 (round-robin works)");
         else
-            $display("❌ FAIL: Second winner unexpected (m0=%b m1=%b)", master_0_ack, master_1_ack);
+            $display("FAIL: Second winner unexpected (m0=%b m1=%b)", master_0_ack, master_1_ack);
     end
     else if (!master_0_ack && master_1_ack) begin
-        $display("✅ First winner: Master1");
+        $display("First winner: Master1");
         master_1_req = 1'b0;                 // Master1 finishes
         @(posedge clk);
         @(negedge clk);
         if (master_0_ack && !master_1_ack)
-            $display("✅ Second winner: Master0 (round‑robin works)");
+            $display("Second winner: Master0 (round-robin works)");
         else
-            $display("❌ FAIL: Second winner unexpected (m0=%b m1=%b)", master_0_ack, master_1_ack);
+            $display("FAIL: Second winner unexpected (m0=%b m1=%b)", master_0_ack, master_1_ack);
     end
     else begin
-        $display("❌ FAIL: No clear winner in conflict");
+        $display("FAIL: No clear winner in conflict");
     end
     
     master_0_req = 1'b0;
@@ -313,20 +313,20 @@ task test6_conflict_round_robin_reads();
 endtask
 
 //===========================================================
-// TEST 7: Conflict on Slave1 – Round‑Robin (writes)
+// TEST 7: Conflict on Slave1 - Round-Robin (writes)
 //===========================================================
 task test7_conflict_round_robin_writes();
-    $display("\n=== TEST 7: Conflict on Slave1 (Round‑Robin writes) ===");
+    $display("\n=== TEST 7: Conflict on Slave1 (Round-Robin writes) ===");
     
     // Both request slave1 with write
     master_0_req = 1'b1;
     master_0_cmd = 1'b1;                    // write
-    master_0_addr = 32'h8000_1000;         // MSB=1 → slave1
+    master_0_addr = 32'h8000_1000;         // MSB=1 -> slave1
     master_0_wdata = 32'h1111_1111;
     
     master_1_req = 1'b1;
     master_1_cmd = 1'b1;                    // write
-    master_1_addr = 32'h8000_2000;         // MSB=1 → slave1
+    master_1_addr = 32'h8000_2000;         // MSB=1 -> slave1
     master_1_wdata = 32'h2222_2222;
     
     @(posedge clk);
@@ -334,27 +334,27 @@ task test7_conflict_round_robin_writes();
     
     // After first arbitration, one gets grant
     if (master_0_ack && !master_1_ack) begin
-        $display("✅ First winner: Master0 (write)");
+        $display("First winner: Master0 (write)");
         master_0_req = 1'b0;
         @(posedge clk);
         @(negedge clk);
         if (!master_0_ack && master_1_ack)
-            $display("✅ Second winner: Master1 (round‑robin works)");
+            $display("Second winner: Master1 (round-robin works)");
         else
-            $display("❌ FAIL: Second write winner unexpected");
+            $display("FAIL: Second write winner unexpected");
     end
     else if (!master_0_ack && master_1_ack) begin
-        $display("✅ First winner: Master1 (write)");
+        $display("First winner: Master1 (write)");
         master_1_req = 1'b0;
         @(posedge clk);
         @(negedge clk);
         if (master_0_ack && !master_1_ack)
-            $display("✅ Second winner: Master0 (round‑robin works)");
+            $display("Second winner: Master0 (round-robin works)");
         else
-            $display("❌ FAIL: Second write winner unexpected");
+            $display("FAIL: Second write winner unexpected");
     end
     else begin
-        $display("❌ FAIL: No clear winner in write conflict");
+        $display("FAIL: No clear winner in write conflict");
     end
     
     master_0_req = 1'b0;
@@ -367,7 +367,7 @@ endtask
 //===========================================================
 initial begin
     $display("========================================");
-    $display("     XBAR TESTBENCH – FULL (READ+WRITE)");
+    $display("     XBAR TESTBENCH - FULL (READ+WRITE)");
     $display("========================================");
     
     // Basic read/write tests
